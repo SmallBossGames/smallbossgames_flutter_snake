@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_snake/game_field.dart';
 import 'package:flutter_snake/game_top_bar.dart';
 
 class GameLayout extends StatelessWidget {
@@ -18,10 +19,15 @@ class GameLayout extends StatelessWidget {
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(20),
           child: Padding(
-            padding: EdgeInsetsDirectional.symmetric(horizontal: 10),
-            child: GameTopBar(score: 12, whenReset: action)
-          ),
+              padding: EdgeInsetsDirectional.symmetric(horizontal: 10),
+              child: GameTopBar(score: 12, whenReset: action)),
         ),
+      ),
+      body: const Padding(
+        padding: EdgeInsets.all(10),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [Expanded(child: GameField())]),
       ),
     );
   }
