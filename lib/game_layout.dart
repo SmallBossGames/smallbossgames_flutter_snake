@@ -25,9 +25,31 @@ class GameLayout extends StatelessWidget {
       ),
       body: const Padding(
         padding: EdgeInsets.all(10),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [Expanded(child: GameField())]),
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Expanded(
+              child: GameField(pointsBySize: 50, rawApplePoint: [
+            9,
+            9
+          ], rawLinePoints: [
+            2,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            4,
+            3,
+            5,
+            3,
+            6,
+            3,
+            7,
+            3,
+            8
+          ]))
+        ]),
       ),
     );
   }

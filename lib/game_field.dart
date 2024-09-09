@@ -3,15 +3,23 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class GameField extends StatelessWidget {
-  const GameField({super.key});
+  const GameField(
+      {super.key,
+      required this.pointsBySize,
+      required this.rawApplePoint,
+      required this.rawLinePoints});
+
+  final int pointsBySize;
+  final List<int> rawApplePoint;
+  final List<int> rawLinePoints;
 
   @override
   Widget build(BuildContext context) {
-    return const CustomPaint(
+    return CustomPaint(
       painter: _GameFieldPainter(
-          pointsBySize: 50,
-          applePoint: [9, 9],
-          rawLinePoints: [2, 2, 2, 3, 3, 3, 3, 4, 3, 5, 3, 6, 3, 7, 3, 8]),
+          pointsBySize: pointsBySize,
+          rawApplePoint: rawApplePoint,
+          rawLinePoints: rawLinePoints),
     );
   }
 }
@@ -20,10 +28,10 @@ class _GameFieldPainter extends CustomPainter {
   const _GameFieldPainter(
       {required this.pointsBySize,
       required this.rawLinePoints,
-      required this.applePoint});
+      required this.rawApplePoint});
 
   final int pointsBySize;
-  final List<int> applePoint;
+  final List<int> rawApplePoint;
   final List<int> rawLinePoints;
 
   @override
@@ -95,10 +103,11 @@ class _GameFieldPainter extends CustomPainter {
       ..strokeWidth = 7
       ..strokeCap = StrokeCap.round;
 
-    final dx = step * applePoint[0] + offset - generalOffset;
-    final dy = step * applePoint[1] + offset - generalOffset;
+    final dx = step * rawApplePoint[0] + offset - generalOffset;
+    final dy = step * rawApplePoint[1] + offset - generalOffset;
 
-    canvas.drawPoints(PointMode.points, [size.center(Offset(dx, dy))], applePaint);
+    canvas.drawPoints(
+        PointMode.points, [size.center(Offset(dx, dy))], applePaint);
   }
 
   void _drawDebugPoints(Canvas canvas, Size size) {
