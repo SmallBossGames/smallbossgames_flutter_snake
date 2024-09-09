@@ -8,23 +8,29 @@ class GameField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const CustomPaint(
-      painter:
-          _GameFieldPainter(pointsBySize: 100, rawLinePoints: [2, 2, 2, 3, 3, 3]),
+      painter: _GameFieldPainter(
+          pointsBySize: 50,
+          applePoint: [9, 9],
+          rawLinePoints: [2, 2, 2, 3, 3, 3, 3, 4, 3, 5, 3, 6, 3, 7, 3, 8]),
     );
   }
 }
 
 class _GameFieldPainter extends CustomPainter {
   const _GameFieldPainter(
-      {required this.pointsBySize, required this.rawLinePoints});
+      {required this.pointsBySize,
+      required this.rawLinePoints,
+      required this.applePoint});
 
   final int pointsBySize;
+  final List<int> applePoint;
   final List<int> rawLinePoints;
 
   @override
   void paint(Canvas canvas, Size size) {
     _drawDebugPoints(canvas, size);
     _drawSnake(canvas, size);
+    _drawApple(canvas, size);
   }
 
   @override
@@ -36,12 +42,16 @@ class _GameFieldPainter extends CustomPainter {
     final offset = step / 2;
     final generalOffset = squareSize / 2;
 
-    const lineRadius = 5.0;
-
     final snakePaint = Paint()
       ..color = Colors.orange
-      ..strokeWidth = lineRadius
+      ..strokeWidth = 5
       ..style = PaintingStyle.stroke;
+
+    final snakeHeadPaint = Paint()
+      ..color = Colors.orange.shade700
+      ..strokeWidth = 8
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
 
     final line = List<Offset>.empty(growable: true);
     final path = Path();
@@ -62,9 +72,8 @@ class _GameFieldPainter extends CustomPainter {
         }
       }
 
-      final dx = step * rawLinePoints[i] + offset - (lineRadius / 4) - generalOffset;
-      final dy =
-          step * rawLinePoints[i + 1] + offset - (lineRadius / 4) - generalOffset;
+      final dx = step * rawLinePoints[i] + offset - generalOffset;
+      final dy = step * rawLinePoints[i + 1] + offset - generalOffset;
 
       line.add(size.center(Offset(dx, dy)));
     }
@@ -72,6 +81,24 @@ class _GameFieldPainter extends CustomPainter {
     path.addPolygon(line, false);
 
     canvas.drawPath(path, snakePaint);
+    canvas.drawPoints(PointMode.points, [line.last], snakeHeadPaint);
+  }
+
+  void _drawApple(Canvas canvas, Size size) {
+    final squareSize = size.shortestSide;
+    final step = squareSize / pointsBySize;
+    final offset = step / 2;
+    final generalOffset = squareSize / 2;
+
+    final applePaint = Paint()
+      ..color = Colors.red
+      ..strokeWidth = 7
+      ..strokeCap = StrokeCap.round;
+
+    final dx = step * applePoint[0] + offset - generalOffset;
+    final dy = step * applePoint[1] + offset - generalOffset;
+
+    canvas.drawPoints(PointMode.points, [size.center(Offset(dx, dy))], applePaint);
   }
 
   void _drawDebugPoints(Canvas canvas, Size size) {
@@ -79,11 +106,9 @@ class _GameFieldPainter extends CustomPainter {
     final step = squareSize / pointsBySize;
     final offset = step / 2;
 
-    const dotRadius = 1.0;
-
     final debugPointPaint = Paint()
       ..color = Colors.green
-      ..strokeWidth = dotRadius * 2
+      ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
     final generalOffset = squareSize / 2;
@@ -92,8 +117,8 @@ class _GameFieldPainter extends CustomPainter {
 
     for (int i = 0; i < pointsBySize; i++) {
       for (int j = 0; j < pointsBySize; j++) {
-        final dx = step * i + offset - dotRadius - generalOffset;
-        final dy = step * j + offset - dotRadius - generalOffset;
+        final dx = step * i + offset - generalOffset;
+        final dy = step * j + offset - generalOffset;
 
         points.add(size.center(Offset(dx, dy)));
       }
