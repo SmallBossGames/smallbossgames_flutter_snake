@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,9 +41,13 @@ class _GamePageInternal extends StatefulWidget {
 
 class _GamePageInternalState extends State<_GamePageInternal> {
   final _focusNode = FocusNode();
+  static final random = Random();
 
-  var rawApplePoint = [Random().nextInt(50), Random().nextInt(50)];
-  var rawLinePoints = [1, 1, 1, 2, 1, 3];
+  static const _defaultSnakePoints = [1, 1, 1, 2];
+
+  var _rawApplePoint = _createApple(_defaultSnakePoints);
+  var _rawLinePoints = _defaultSnakePoints;
+  var _score = 0;
   var direction = Direction.down;
   var newDirection = Direction.down;
 
@@ -53,13 +58,34 @@ class _GamePageInternalState extends State<_GamePageInternal> {
 
     if (key == LogicalKeyboardKey.arrowUp && direction != Direction.down) {
       newDirection = Direction.up;
-    } else if (key == LogicalKeyboardKey.arrowDown && direction != Direction.up) {
+    } else if (key == LogicalKeyboardKey.arrowDown &&
+        direction != Direction.up) {
       newDirection = Direction.down;
-    } else if (key == LogicalKeyboardKey.arrowLeft && direction != Direction.right) {
+    } else if (key == LogicalKeyboardKey.arrowLeft &&
+        direction != Direction.right) {
       newDirection = Direction.left;
-    } else if (key == LogicalKeyboardKey.arrowRight && direction != Direction.left) {
+    } else if (key == LogicalKeyboardKey.arrowRight &&
+        direction != Direction.left) {
       newDirection = Direction.right;
     }
+  }
+
+  static List<int> _createApple(List<int> snakePoints) {
+    var exculsionPoints = Int32List((snakePoints.length ~/ 2));
+    for (var i = 0; i < snakePoints.length; i+=2) {
+      exculsionPoints[(i ~/ 2)] =
+          snakePoints[i] + snakePoints[i + 1] * 50;
+    }
+    exculsionPoints.sort();
+
+    var nextPoint = random.nextInt(50 * 50 - exculsionPoints.length);
+    for(var i = 0; i < exculsionPoints.length; i++){
+      if(exculsionPoints[i] <= nextPoint){
+        nextPoint++;
+      }
+    }
+
+    return [nextPoint % 50, nextPoint ~/50];
   }
 
   @override
@@ -69,14 +95,27 @@ class _GamePageInternalState extends State<_GamePageInternal> {
     _mainLoopTimer = Timer.periodic(const Duration(milliseconds: 100), (x) {
       direction = newDirection;
 
-      final newLinePoints = [
-        ...rawLinePoints.sublist(2), 
-        (rawLinePoints[rawLinePoints.length - 2] + direction.x) % 50,
-        (rawLinePoints[rawLinePoints.length - 1] + direction.y) % 50,
-      ];
+      final headPosition = _rawLinePoints.sublist(_rawLinePoints.length - 2);
+
+      if (headPosition[0] == _rawApplePoint[0] &&
+          headPosition[1] == _rawApplePoint[1]) {
+        setState(() {
+          _score++;
+          _rawLinePoints = [
+            ..._rawLinePoints,
+            (headPosition[0] + direction.x) % 50,
+            (headPosition[1] + direction.y) % 50,
+          ];
+          _rawApplePoint = _createApple(_rawLinePoints);
+        });
+      }
 
       setState(() {
-        rawLinePoints = newLinePoints;
+        _rawLinePoints = [
+          ..._rawLinePoints.sublist(2),
+          (headPosition[0] + direction.x) % 50,
+          (headPosition[1] + direction.y) % 50
+        ];
       });
     });
   }
@@ -89,11 +128,11 @@ class _GamePageInternalState extends State<_GamePageInternal> {
         onKeyEvent: _handleKey,
         child: GameLayout(
             title: "SmallBossGames' Snake",
-            topBar: GameTopBar(score: 12, whenReset: widget.whenReset),
+            topBar: GameTopBar(score: _score, whenReset: widget.whenReset),
             gameField: GameField(
                 pointsBySize: 50,
-                rawApplePoint: rawApplePoint,
-                rawLinePoints: rawLinePoints)));
+                rawApplePoint: _rawApplePoint,
+                rawLinePoints: _rawLinePoints)));
   }
 
   @override
@@ -104,9 +143,9 @@ class _GamePageInternalState extends State<_GamePageInternal> {
   }
 }
 
-enum Direction{
+enum Direction {
   up(x: 0, y: -1),
-  down(x: 0, y: 1), 
+  down(x: 0, y: 1),
   left(x: -1, y: 0),
   right(x: 1, y: 0);
 
