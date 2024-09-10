@@ -72,20 +72,30 @@ class _GamePageInternalState extends State<_GamePageInternal> {
 
   static List<int> _createApple(List<int> snakePoints) {
     var exculsionPoints = Int32List((snakePoints.length ~/ 2));
-    for (var i = 0; i < snakePoints.length; i+=2) {
-      exculsionPoints[(i ~/ 2)] =
-          snakePoints[i] + snakePoints[i + 1] * 50;
+    for (var i = 0; i < snakePoints.length; i += 2) {
+      exculsionPoints[(i ~/ 2)] = snakePoints[i] + snakePoints[i + 1] * 50;
     }
     exculsionPoints.sort();
 
     var nextPoint = random.nextInt(50 * 50 - exculsionPoints.length);
-    for(var i = 0; i < exculsionPoints.length; i++){
-      if(exculsionPoints[i] <= nextPoint){
+    for (var i = 0; i < exculsionPoints.length; i++) {
+      if (exculsionPoints[i] <= nextPoint) {
         nextPoint++;
       }
     }
 
-    return [nextPoint % 50, nextPoint ~/50];
+    return [nextPoint % 50, nextPoint ~/ 50];
+  }
+
+  static bool _detectCollision(List<int> snakePoints) {
+    final head = snakePoints.sublist(snakePoints.length - 2);
+    for (var i = 0; i < snakePoints.length - 2; i += 2) {
+      if (head[0] == snakePoints[i] && head[1] == snakePoints[i + 1]) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @override
@@ -108,6 +118,8 @@ class _GamePageInternalState extends State<_GamePageInternal> {
           ];
           _rawApplePoint = _createApple(_rawLinePoints);
         });
+
+        return;
       }
 
       setState(() {
@@ -117,6 +129,10 @@ class _GamePageInternalState extends State<_GamePageInternal> {
           (headPosition[1] + direction.y) % 50
         ];
       });
+
+      if (_detectCollision(_rawLinePoints)) {
+        _mainLoopTimer.cancel();
+      }
     });
   }
 
